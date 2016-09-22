@@ -3,15 +3,24 @@ package main
 import (
 	"bufio"
 	"encoding/csv"
+	"flag"
+	"fmt"
 	"github.com/savaki/go.hue"
 	"os"
 	"strings"
 	"time"
 )
 
-var BridgeAddress = os.Getenv("BRIDGE_ADDRESS")
-var Username = os.Getenv("USERNAME")
-var SunsetTable = os.Getenv("SUNSET_TABLE")
+const Version = "0.0.1"
+
+var options struct {
+	setup         bool
+	version       bool
+	app           string
+	bridgeAddress string
+	username      string
+	sunsetTable   string
+}
 
 type Day struct {
 	day     string
@@ -19,8 +28,8 @@ type Day struct {
 	sunset  string
 }
 
-func findDay() Day {
-	f, _ := os.Open(SunsetTable)
+func findDay(sunsetTable string) Day {
+	f, _ := os.Open(sunsetTable)
 	r := csv.NewReader(bufio.NewReader(f))
 	result, _ := r.ReadAll()
 
@@ -34,9 +43,9 @@ func findDay() Day {
 	return Day{day: "", sunrise: "", sunset: ""}
 }
 
-func lightsOff() {
+func lightsOff(bridgeAddress, username string) {
 	println("Turning lights off")
-	bridge := hue.NewBridge(BridgeAddress, Username)
+	bridge := hue.NewBridge(bridgeAddress, username)
 	lights, _ := bridge.GetAllLights()
 
 	for _, light := range lights {
@@ -44,9 +53,9 @@ func lightsOff() {
 	}
 }
 
-func lightsOn() {
+func lightsOn(bridgeAddress, username string) {
 	println("Turning lights on")
-	bridge := hue.NewBridge(BridgeAddress, Username)
+	bridge := hue.NewBridge(bridgeAddress, username)
 	lights, _ := bridge.GetAllLights()
 
 	for _, light := range lights {
@@ -66,29 +75,71 @@ func currentDate() string {
 	return cd
 }
 
+func setup(app string) {
+	locators, err := hue.DiscoverBridges(false)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Could not discover bridge:  %s\n", err)
+	}
+	locator := locators[0]
+
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print("Push the button on your Hue and the press any key to continue...")
+	reader.ReadString('\n')
+
+	bridge, err := locator.CreateUser(app)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Could not discover bridge:  %s\n", err)
+	}
+
+	fmt.Printf("registered new device => %+v\n", bridge)
+	os.Exit(0)
+}
+
 func main() {
-	if BridgeAddress == "" {
-		println("You did not set BRIDGE_ADDRESS env var")
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "usage:  %s [options]\n", os.Args[0])
+		flag.PrintDefaults()
+	}
+
+	flag.StringVar(&options.sunsetTable, "sunsetTable", "", "path to CSV of time data (e.g. /times.csv)")
+	flag.StringVar(&options.username, "username", "", "username use to connect to bridge")
+	flag.StringVar(&options.bridgeAddress, "bridgeAddress", "", "i.p. address of Hue bridge (e.g. 192.168.2.2)")
+	flag.StringVar(&options.app, "app", "", "name of app. (Only used if -setup flag is pressent)")
+	flag.BoolVar(&options.setup, "setup", false, "set this flag to setup a new Hue bridge")
+	flag.BoolVar(&options.version, "version", false, "print version and exit")
+	flag.Parse()
+
+	if options.setup {
+		if options.app == "" {
+			println("You did not set `-app` name to use during setup.")
+			os.Exit(1)
+		}
+
+		setup(options.app)
+	}
+
+	if options.bridgeAddress == "" {
+		println("You did not set a bridgeAddress flag")
 		os.Exit(1)
 	}
 
-	if Username == "" {
-		println("You did not set USERNAME env var")
+	if options.username == "" {
+		println("You did not set a username flag")
 		os.Exit(1)
 	}
 
-	if SunsetTable == "" {
-		println("You did not set SUNSET_TABLE env var")
+	if options.sunsetTable == "" {
+		println("You did not set a sunsetTable flag")
 		os.Exit(1)
 	}
 
-	day := findDay()
+	day := findDay(options.sunsetTable)
 	time := currentTime()
 
 	switch time {
 	case day.sunrise:
-		lightsOff()
+		lightsOff(options.bridgeAddress, options.username)
 	case day.sunset:
-		lightsOn()
+		lightsOn(options.bridgeAddress, options.username)
 	}
 }
