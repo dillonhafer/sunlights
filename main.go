@@ -46,9 +46,13 @@ func findDay(sunsetTable string) Day {
 func lightsOff(bridgeAddress, username string) {
 	println("Turning lights off")
 	bridge := hue.NewBridge(bridgeAddress, username)
-	lights, _ := bridge.GetAllLights()
+	lights, err := bridge.GetAllLights()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Could not find lights:  %s\n", err)
+	}
 
 	for _, light := range lights {
+		fmt.Printf("Turned off device => %+v\n", light)
 		light.Off()
 	}
 }
@@ -56,9 +60,13 @@ func lightsOff(bridgeAddress, username string) {
 func lightsOn(bridgeAddress, username string) {
 	println("Turning lights on")
 	bridge := hue.NewBridge(bridgeAddress, username)
-	lights, _ := bridge.GetAllLights()
+	lights, err := bridge.GetAllLights()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Could not find lights:  %s\n", err)
+	}
 
 	for _, light := range lights {
+		fmt.Printf("Turned on device => %+v\n", light)
 		light.On()
 	}
 }
