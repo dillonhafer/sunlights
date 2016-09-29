@@ -28,12 +28,14 @@ type Day struct {
 	sunset  string
 }
 
-func findDay(sunsetTable string) Day {
-	f, _ := os.Open(sunsetTable)
+func findDay(sunsetTable, today string) Day {
+	f, err := os.Open(sunsetTable)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Could not open sunset file:  %s\n", err)
+	}
 	r := csv.NewReader(bufio.NewReader(f))
 	result, _ := r.ReadAll()
 
-	today := currentDate()
 	for i := range result {
 		day := Day{day: result[i][0], sunrise: result[i][1], sunset: result[i][2]}
 		if today == day.day {
@@ -141,8 +143,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	day := findDay(options.sunsetTable)
+	date := currentDate()
 	time := currentTime()
+	day := findDay(options.sunsetTable, date)
 
 	switch time {
 	case day.sunrise:
