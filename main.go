@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/savaki/go.hue"
+	"log"
 	"os"
 	"strings"
 	"time"
@@ -28,21 +29,21 @@ type Day struct {
 	sunset  string
 }
 
-func findDay(sunsetTable, today string) Day {
+func findDay(sunsetTable, today string) (Day, error) {
 	f, err := os.Open(sunsetTable)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Could not open sunset file:  %s\n", err)
 	}
 	r := csv.NewReader(bufio.NewReader(f))
-	result, _ := r.ReadAll()
+	result, err := r.ReadAll()
 
 	for i := range result {
 		day := Day{day: result[i][0], sunrise: result[i][1], sunset: result[i][2]}
 		if today == day.day {
-			return day
+			return day, err
 		}
 	}
-	return Day{day: "", sunrise: "", sunset: ""}
+	return Day{day: "", sunrise: "", sunset: ""}, err
 }
 
 func lightsOff(bridgeAddress, username string) {
@@ -80,9 +81,8 @@ func currentTime() string {
 	return ct
 }
 
-func currentDate() string {
-	cd := time.Now().Format("Jan-2")
-	return cd
+func CurrentDate(t time.Time) string {
+	return t.Format("Jan-02")
 }
 
 func setup(app string) {
@@ -143,9 +143,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	date := currentDate()
+	date := CurrentDate(time.Now())
 	time := currentTime()
-	day := findDay(options.sunsetTable, date)
+
+	day, err := findDay(options.sunsetTable, date)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	switch time {
 	case day.sunrise:
