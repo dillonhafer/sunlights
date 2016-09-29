@@ -74,8 +74,8 @@ func lightsOn(bridgeAddress, username string) {
 	}
 }
 
-func currentTime() string {
-	ct := time.Now().Format("3:04 pm")
+func CurrentTime(t time.Time) string {
+	ct := t.Format("3:04 pm")
 	ct = strings.Replace(ct, "am", "a.m.", -1)
 	ct = strings.Replace(ct, "pm", "p.m.", -1)
 	return ct
@@ -143,8 +143,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	date := CurrentDate(time.Now())
-	time := currentTime()
+	ct := time.Now()
+	date := CurrentDate(ct)
+	time := CurrentTime(ct)
 
 	day, err := findDay(options.sunsetTable, date)
 	if err != nil {
