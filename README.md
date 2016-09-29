@@ -1,4 +1,4 @@
-Sunlights
+Sunlights [![CircleCI](https://circleci.com/gh/dillonhafer/sunlights.svg?style=svg)](https://circleci.com/gh/dillonhafer/sunlights)
 ------
 
 A cross-platform server for Raspberry Pi, Linux, OSX, or Windows to turn Hue lights on and off based on the sunrise/sunset. Ideally used for outdoor porch lighting.
