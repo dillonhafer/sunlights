@@ -13,18 +13,18 @@ func assertEqual(t *testing.T, given Day, expected Day) {
 
 func TestCurrentDate(t *testing.T) {
 	var datetests = []struct {
-		in  time.Time
-		out string
+		rawDate       time.Time
+		formattedDate string
 	}{
 		{time.Date(2016, 1, 3, 1, 1, 1, 1, time.UTC), "Jan-03"},
 		{time.Date(2016, 1, 15, 1, 1, 1, 1, time.UTC), "Jan-15"},
 		{time.Date(2016, 1, 30, 1, 1, 1, 1, time.UTC), "Jan-30"},
 	}
 
-	for _, rawDate := range datetests {
-		date := CurrentDate(rawDate.in)
-		if date != rawDate.out {
-			t.Fatalf("\033[31mExpected \033[m \033[33m%v\033[33m \033[31mbut was\033[m \033[33m%v\033[m", rawDate.out, date)
+	for _, date := range datetests {
+		cd := CurrentDate(date.rawDate)
+		if cd != date.formattedDate {
+			t.Fatalf("\033[31mExpected \033[m \033[33m%v\033[33m \033[31mbut was\033[m \033[33m%v\033[m", date.formattedDate, cd)
 		}
 	}
 }
