@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/savaki/go.hue"
+	hue "github.com/dillonhafer/go.hue"
 )
 
-const Version = "1.0.0"
+const Version = "2.0.0"
 
 var options struct {
 	setup         bool
