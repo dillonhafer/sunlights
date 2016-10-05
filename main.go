@@ -30,25 +30,34 @@ type Day struct {
 	sunset  string
 }
 
+func puts(message string) {
+	l := log.New(os.Stdout, "[Sunlights] ", log.Ldate|log.Ltime)
+	l.Printf("%s", message)
+}
+
 func findDay(sunsetTable, today string) (Day, error) {
-	f, err := os.Open(sunsetTable)
+	csvFile, err := os.Open(sunsetTable)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Could not open sunset file:  %s\n", err)
 	}
-	r := csv.NewReader(bufio.NewReader(f))
-	result, err := r.ReadAll()
+	csvRows := csv.NewReader(bufio.NewReader(csvFile))
+	result, err := csvRows.ReadAll()
 
 	for i := range result {
-		day := Day{day: result[i][0], sunrise: result[i][1], sunset: result[i][2]}
+		row := result[i]
+		day := Day{day: row[0], sunrise: row[1], sunset: row[2]}
+
 		if today == day.day {
 			return day, err
 		}
 	}
+
 	return Day{day: "", sunrise: "", sunset: ""}, err
 }
 
 func lightsOff(bridgeAddress, username string) {
-	println("Turning lights off")
+	puts("Turning lights off")
+
 	bridge := hue.NewBridge(bridgeAddress, username)
 	lights, err := bridge.GetAllLights()
 	if err != nil {
@@ -62,15 +71,15 @@ func lightsOff(bridgeAddress, username string) {
 }
 
 func lightsOn(bridgeAddress, username string) {
-	println("Turning lights on")
+	puts("Turning lights on")
 	bridge := hue.NewBridge(bridgeAddress, username)
 	lights, err := bridge.GetAllLights()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Could not find lights:  %s\n", err)
+		puts(fmt.Sprintf("Could not find lights: %s\n", err))
 	}
 
 	for _, light := range lights {
-		fmt.Printf("Turned on device => %+v\n", light)
+		puts(fmt.Sprintf("Turned on light => %+v\n", light))
 		light.On()
 	}
 }
