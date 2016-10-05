@@ -1,0 +1,11 @@
+{
+	"ImportPath": "github.com/dillonhafer/sunlights",
+	"GoVersion": "go1.7",
+	"GodepVersion": "v74",
+	"Deps": [
+		{
+			"ImportPath": "github.com/dillonhafer/go.hue",
+			"Rev": "14946570ec7636cdf62123b57743aae859f117fd"
+		}
+	]
+}
