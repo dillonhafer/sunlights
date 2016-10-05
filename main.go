@@ -65,7 +65,7 @@ func lightsOff(bridgeAddress, username string) {
 	}
 
 	for _, light := range lights {
-		fmt.Printf("Turned off device => %+v\n", light)
+		puts(fmt.Sprintf("Turned off light => %+v\n", light.Name))
 		light.Off()
 	}
 }
@@ -79,7 +79,7 @@ func lightsOn(bridgeAddress, username string) {
 	}
 
 	for _, light := range lights {
-		puts(fmt.Sprintf("Turned on light => %+v\n", light))
+		puts(fmt.Sprintf("Turned on light => %+v\n", light.Name))
 		light.On()
 	}
 }
