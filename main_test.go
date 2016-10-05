@@ -11,7 +11,7 @@ func assertEqual(t *testing.T, given Day, expected Day) {
 	}
 }
 
-func TestCurrentDate(t *testing.T) {
+func TestFormatDate(t *testing.T) {
 	var datetests = []struct {
 		rawDate       time.Time
 		formattedDate string
@@ -22,14 +22,14 @@ func TestCurrentDate(t *testing.T) {
 	}
 
 	for _, date := range datetests {
-		cd := CurrentDate(date.rawDate)
+		cd := FormatDate(date.rawDate)
 		if cd != date.formattedDate {
 			t.Fatalf("\033[31mExpected \033[m \033[33m%v\033[33m \033[31mbut was\033[m \033[33m%v\033[m", date.formattedDate, cd)
 		}
 	}
 }
 
-func TestCurrentTime(t *testing.T) {
+func TestFormatTime(t *testing.T) {
 	var timetests = []struct {
 		rawTime       time.Time
 		formattedTime string
@@ -40,7 +40,7 @@ func TestCurrentTime(t *testing.T) {
 	}
 
 	for _, timeTest := range timetests {
-		ct := CurrentTime(timeTest.rawTime)
+		ct := FormatTime(timeTest.rawTime)
 		if ct != timeTest.formattedTime {
 			t.Fatalf("\033[31mExpected \033[m \033[33m%v\033[33m \033[31mbut was\033[m \033[33m%v\033[m", timeTest.formattedTime, ct)
 		}

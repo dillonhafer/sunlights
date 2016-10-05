@@ -5,11 +5,12 @@ import (
 	"encoding/csv"
 	"flag"
 	"fmt"
-	"github.com/savaki/go.hue"
 	"log"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/savaki/go.hue"
 )
 
 const Version = "0.0.1"
@@ -74,14 +75,14 @@ func lightsOn(bridgeAddress, username string) {
 	}
 }
 
-func CurrentTime(t time.Time) string {
+func FormatTime(t time.Time) string {
 	ct := t.Format("3:04 pm")
 	ct = strings.Replace(ct, "am", "a.m.", -1)
 	ct = strings.Replace(ct, "pm", "p.m.", -1)
 	return ct
 }
 
-func CurrentDate(t time.Time) string {
+func FormatDate(t time.Time) string {
 	return t.Format("Jan-02")
 }
 
@@ -144,8 +145,8 @@ func main() {
 	}
 
 	ct := time.Now()
-	date := CurrentDate(ct)
-	time := CurrentTime(ct)
+	date := FormatDate(ct)
+	time := FormatTime(ct)
 
 	day, err := findDay(options.sunsetTable, date)
 	if err != nil {
