@@ -1,3 +1,4 @@
 #!/bin/bash
 set -e
-GOOS=linux GOARCH=arm GOARM=6 go build -v github.com/dillonhafer/sunlights
+go test
+GOOS=linux GOARCH=arm GOARM=6 go build github.com/dillonhafer/sunlights
