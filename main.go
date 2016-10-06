@@ -16,6 +16,8 @@ import (
 
 const Version = "2.0.0"
 
+var Bridge *hue.Bridge
+
 var options struct {
 	setup         bool
 	version       bool
@@ -60,35 +62,28 @@ func findDay(sunsetTable, today string) (Day, error) {
 		}
 	}
 
-	return Day{}, errors.New("Could not find entry for '%s' in csv")
+	return Day{}, errors.New(fmt.Sprintf("Could not find entry for '%s' in csv", today))
 }
 
-func lightsOff(bridgeAddress, username string) {
-	puts("Turning lights off")
+func toggleLights(on bool) {
+	direction := "on"
+	if !on {
+		direction = "off"
+	}
+	puts(fmt.Sprintf("Turning lights %s", direction))
 
-	bridge := hue.NewBridge(bridgeAddress, username)
-	lights, err := bridge.GetAllLights()
+	lights, err := Bridge.GetAllLights()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Could not find lights:  %s\n", err)
 	}
 
 	for _, light := range lights {
-		puts(fmt.Sprintf("Turned off light => %+v\n", light.Name))
-		light.Off()
-	}
-}
-
-func lightsOn(bridgeAddress, username string) {
-	puts("Turning lights on")
-	bridge := hue.NewBridge(bridgeAddress, username)
-	lights, err := bridge.GetAllLights()
-	if err != nil {
-		puts(fmt.Sprintf("Could not find lights: %s\n", err))
-	}
-
-	for _, light := range lights {
-		puts(fmt.Sprintf("Turned on light => %+v\n", light.Name))
-		light.On()
+		puts(fmt.Sprintf("Turned %s light => %+v\n", direction, light.Name))
+		if on {
+			light.On()
+		} else {
+			light.Off()
+		}
 	}
 }
 
@@ -162,18 +157,21 @@ func main() {
 	}
 
 	ct := time.Now()
-	date := FormatDate(ct)
-	time := FormatTime(ct)
+	Bridge = hue.NewBridge(options.bridgeAddress, options.username)
 
+	date := FormatDate(ct)
 	day, err := findDay(options.sunsetTable, date)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	time := FormatTime(ct)
 	switch time {
 	case day.sunrise:
-		lightsOff(options.bridgeAddress, options.username)
+		off := false
+		toggleLights(off)
 	case day.sunset:
-		lightsOn(options.bridgeAddress, options.username)
+		on := true
+		toggleLights(on)
 	}
 }

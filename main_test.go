@@ -56,6 +56,15 @@ func TestFindDayCantFindFile(t *testing.T) {
 	_, err := findDay("nofilehere", "Jan-01")
 
 	if err == nil {
-		t.Error("Expected an error")
+		t.Error("Expected a missing file error")
+	}
+}
+
+func TestFindDayCantFindDay(t *testing.T) {
+	testFile := "times.example.csv"
+	_, err := findDay(testFile, "Aug-01")
+
+	if err.Error() != "Could not find entry for 'Aug-01' in csv" {
+		t.Error("Expected a can't find entry error")
 	}
 }
