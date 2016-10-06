@@ -5,12 +5,6 @@ import (
 	"time"
 )
 
-func assertEqual(t *testing.T, given Day, expected Day) {
-	if given != expected {
-		t.Fatalf("\033[31mExpected \033[m \033[33m%v\033[33m \033[31mbut was\033[m \033[33m%v\033[m", expected, given)
-	}
-}
-
 func TestFormatDate(t *testing.T) {
 	var datetests = []struct {
 		rawDate       time.Time
@@ -53,7 +47,9 @@ func TestFindDayWorks(t *testing.T) {
 
 	day, _ := findDay(testFile, "Jan-01")
 
-	assertEqual(t, day, expectedDay)
+	if day != expectedDay {
+		t.Fatalf("Expected %v but was %v", expectedDay, day)
+	}
 }
 
 func TestFindDayCantFindFile(t *testing.T) {
