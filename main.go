@@ -2,13 +2,10 @@ package main
 
 import (
 	"bufio"
-	"encoding/csv"
-	"errors"
 	"flag"
 	"fmt"
 	"log"
 	"os"
-	"strings"
 	"time"
 
 	hue "github.com/dillonhafer/go.hue"
@@ -27,60 +24,9 @@ var options struct {
 	sunsetTable   string
 }
 
-type Day struct {
-	day     string
-	sunrise string
-	sunset  string
-}
-
-type Today struct {
-	date    string
-	time    string
-	sunrise string
-	sunset  string
-}
-
-func NewToday(currentTime time.Time, sunsetTable string) Today {
-	date := FormatDate(currentTime)
-	time := FormatTime(currentTime)
-	day, err := findDay(sunsetTable, date)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return Today{date: date, time: time, sunrise: day.sunrise, sunset: day.sunset}
-}
-
 func puts(message string) {
 	l := log.New(os.Stdout, "[Sunlights] ", log.Ldate|log.Ltime)
 	l.Printf("%s", message)
-}
-
-func findDay(sunsetTable, today string) (Day, error) {
-	csvFile, err := os.Open(sunsetTable)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Could not open sunset file: %s\n", err)
-		return Day{}, err
-	}
-
-	csvRows := csv.NewReader(bufio.NewReader(csvFile))
-	result, err := csvRows.ReadAll()
-
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Could not read csv file: %s\n", err)
-		return Day{}, err
-	}
-
-	for i := range result {
-		row := result[i]
-		day := Day{day: row[0], sunrise: row[1], sunset: row[2]}
-
-		if today == day.day {
-			return day, nil
-		}
-	}
-
-	return Day{}, errors.New(fmt.Sprintf("Could not find entry for '%s' in csv", today))
 }
 
 func toggleLights(on bool) {
@@ -103,17 +49,6 @@ func toggleLights(on bool) {
 			light.Off()
 		}
 	}
-}
-
-func FormatTime(t time.Time) string {
-	ct := t.Format("3:04 pm")
-	ct = strings.Replace(ct, "am", "a.m.", -1)
-	ct = strings.Replace(ct, "pm", "p.m.", -1)
-	return ct
-}
-
-func FormatDate(t time.Time) string {
-	return t.Format("Jan-02")
 }
 
 func setup(app string) {
