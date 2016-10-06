@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 	"time"
 )
@@ -66,5 +67,27 @@ func TestFindDayCantFindDay(t *testing.T) {
 
 	if err.Error() != "Could not find entry for 'Aug-01' in csv" {
 		t.Error("Expected a can't find entry error")
+	}
+}
+
+func TestNewToday(t *testing.T) {
+	var datetests = []struct {
+		rawDate time.Time
+		date    string
+		time    string
+		sunrise string
+		sunset  string
+	}{
+		{time.Date(2016, 1, 1, 16, 29, 1, 1, time.UTC), "Jan-01", "4:29 p.m.", "7:15 a.m.", "4:29 p.m."},
+		{time.Date(2016, 1, 3, 3, 30, 1, 1, time.UTC), "Jan-03", "3:30 a.m.", "7:16 a.m.", "4:31 p.m."},
+		{time.Date(2016, 1, 5, 0, 0, 1, 1, time.UTC), "Jan-05", "12:00 a.m.", "7:16 a.m.", "4:33 p.m."},
+	}
+
+	for _, today := range datetests {
+		actual := NewToday(today.rawDate, "times.example.csv")
+		expected := Today{date: today.date, time: today.time, sunrise: today.sunrise, sunset: today.sunset}
+		if actual != expected {
+			t.Error(fmt.Sprintf("Expected %v but was %v", expected, actual))
+		}
 	}
 }

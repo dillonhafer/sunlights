@@ -33,6 +33,24 @@ type Day struct {
 	sunset  string
 }
 
+type Today struct {
+	date    string
+	time    string
+	sunrise string
+	sunset  string
+}
+
+func NewToday(currentTime time.Time, sunsetTable string) Today {
+	date := FormatDate(currentTime)
+	time := FormatTime(currentTime)
+	day, err := findDay(sunsetTable, date)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return Today{date: date, time: time, sunrise: day.sunrise, sunset: day.sunset}
+}
+
 func puts(message string) {
 	l := log.New(os.Stdout, "[Sunlights] ", log.Ldate|log.Ltime)
 	l.Printf("%s", message)
@@ -156,21 +174,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	ct := time.Now()
 	Bridge = hue.NewBridge(options.bridgeAddress, options.username)
+	today := NewToday(time.Now(), options.sunsetTable)
 
-	date := FormatDate(ct)
-	day, err := findDay(options.sunsetTable, date)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	time := FormatTime(ct)
-	switch time {
-	case day.sunrise:
+	switch today.time {
+	case today.sunrise:
 		off := false
 		toggleLights(off)
-	case day.sunset:
+	case today.sunset:
 		on := true
 		toggleLights(on)
 	}
