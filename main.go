@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"database/sql"
 	"flag"
 	"fmt"
 	"log"
@@ -9,11 +10,17 @@ import (
 	"time"
 
 	hue "github.com/dillonhafer/go.hue"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 const Version = "2.0.0"
 
 var Bridge *hue.Bridge
+
+type LightBulb struct {
+	Id   int
+	Name string
+}
 
 var options struct {
 	setup         bool
@@ -41,7 +48,16 @@ func toggleLights(on bool) {
 		fmt.Fprintf(os.Stderr, "Could not find lights:  %s\n", err)
 	}
 
+	var allowedLights []*hue.Light
 	for _, light := range lights {
+		for _, l := range AllBulbs() {
+			if l.Name == light.Name {
+				allowedLights = append(allowedLights, light)
+			}
+		}
+	}
+
+	for _, light := range allowedLights {
 		puts(fmt.Sprintf("Turned %s light => %+v\n", direction, light.Name))
 		if on {
 			light.On()
@@ -71,7 +87,110 @@ func setup(app string) {
 	os.Exit(0)
 }
 
+func addBulb(name string) {
+	db, err := sql.Open("sqlite3", "./sunlights.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	tx, err := db.Begin()
+	if err != nil {
+		log.Fatal(err)
+	}
+	stmt, err := tx.Prepare("insert into light_bulbs(name) values(?)")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(name)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	tx.Commit()
+	println(fmt.Sprintf("Added %s", name))
+}
+
+func AllBulbs() []LightBulb {
+	db, err := sql.Open("sqlite3", "./sunlights.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+	rows, err := db.Query("select id, name from light_bulbs")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+
+	var bulbs []LightBulb
+	for rows.Next() {
+		lightBulb := LightBulb{}
+		err = rows.Scan(&lightBulb.Id, &lightBulb.Name)
+		if err != nil {
+			log.Fatal(err)
+		}
+		bulbs = append(bulbs, lightBulb)
+	}
+	err = rows.Err()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return bulbs
+}
+
+func listBulbs() {
+	println("\n", "Here are your light bulbs:")
+	bulbs := AllBulbs()
+	for _, light := range bulbs {
+		fmt.Println(fmt.Sprintf("   %d.", light.Id), light.Name)
+	}
+	println()
+}
+
+func setupDatabase() {
+	db, err := sql.Open("sqlite3", "./sunlights.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	sqlStmt := `
+	  create table light_bulbs (id integer not null primary key, name text);
+	`
+	_, err = db.Exec(sqlStmt)
+	if err != nil {
+		log.Printf("%q: %s\n", err, sqlStmt)
+		return
+	}
+}
+
+func lookForSubCommands(args []string) {
+	if len(args) > 1 {
+		switch args[1] {
+		case "list", "ls":
+			listBulbs()
+			os.Exit(0)
+		case "add", "a":
+			if len(args) > 2 {
+				addBulb(args[2])
+			} else {
+				println("You must provide a name for your new light bulb")
+			}
+			os.Exit(0)
+		case "db:setup":
+			setupDatabase()
+			println("Created database")
+			os.Exit(0)
+		}
+	}
+}
+
 func main() {
+	lookForSubCommands(os.Args)
+
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "usage:  %s [options]\n", os.Args[0])
 		flag.PrintDefaults()
