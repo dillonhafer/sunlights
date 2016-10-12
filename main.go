@@ -10,7 +10,6 @@ import (
 	"time"
 
 	hue "github.com/dillonhafer/go.hue"
-	_ "github.com/mattn/go-sqlite3"
 )
 
 const Version = "2.0.0"
@@ -150,24 +149,7 @@ func listBulbs() {
 	println()
 }
 
-func setupDatabase() {
-	db, err := sql.Open("sqlite3", "./sunlights.db")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-
-	sqlStmt := `
-	  create table light_bulbs (id integer not null primary key, name text);
-	`
-	_, err = db.Exec(sqlStmt)
-	if err != nil {
-		log.Printf("%q: %s\n", err, sqlStmt)
-		return
-	}
-}
-
-func lookForSubCommands(args []string) {
+func ParseSubCommands(args []string) {
 	if len(args) > 1 {
 		switch args[1] {
 		case "list", "ls":
@@ -189,7 +171,8 @@ func lookForSubCommands(args []string) {
 }
 
 func main() {
-	lookForSubCommands(os.Args)
+	ParseSubCommands(os.Args)
+	CheckSetup()
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "usage:  %s [options]\n", os.Args[0])
