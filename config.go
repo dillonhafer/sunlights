@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bufio"
 	"encoding/csv"
+	"errors"
 	"log"
 	"os"
 )
@@ -32,4 +34,33 @@ func (c *Config) Write(fileName string) {
 	}
 
 	defer writer.Flush()
+}
+
+func (c *Config) Fetch(fileName string) error {
+	if fileName == "" {
+		fileName = "./config.csv"
+	}
+	csvFile, err := os.Open(fileName)
+	if err != nil {
+		return errors.New("Config file does not exist. Please run `sunlights setup`")
+	}
+
+	csvRows := csv.NewReader(bufio.NewReader(csvFile))
+	result, err := csvRows.ReadAll()
+
+	if err != nil {
+		return err
+	}
+
+	for i := range result {
+		row := result[i]
+		c.BridgeAddress = row[0]
+		c.Username = row[1]
+	}
+
+	if c.Username != "" && c.BridgeAddress != "" {
+		return nil
+	}
+
+	return errors.New("Config file is missing data. Please run `sunlights setup` again")
 }

@@ -9,6 +9,8 @@ import (
 
 func TestWrite(t *testing.T) {
 	configFile := "./test-config.csv"
+	defer os.Remove(configFile)
+
 	if _, err := os.Stat(configFile); err == nil {
 		err := os.Remove(configFile)
 
@@ -25,7 +27,6 @@ func TestWrite(t *testing.T) {
 	if _, err := os.Stat(configFile); os.IsNotExist(err) {
 		t.Fatal("Config file not written")
 	}
-
 	c, err := ioutil.ReadFile(configFile)
 	if err != nil {
 		t.Fatal("Could not read config file")
@@ -38,5 +39,20 @@ func TestWrite(t *testing.T) {
 	if string(c) != expectedConfig {
 		t.Fatal("File not written properly")
 	}
-	os.Remove(configFile)
+}
+
+func TestFetch(t *testing.T) {
+	configFile := "./test-config.csv"
+	file := []byte(`bridgeAddress,username
+192.168.1.1,sunlightuser2
+`)
+	ioutil.WriteFile(configFile, file, 0644)
+	defer os.Remove(configFile)
+
+	config := Config{}
+	config.Fetch(configFile)
+
+	if config.Username != "sunlightuser2" && config.BridgeAddress != "192.168.1.1" {
+		t.Fatal(fmt.Sprintf("Config was not loaded: %v", config))
+	}
 }
