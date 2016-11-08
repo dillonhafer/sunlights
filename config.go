@@ -1,66 +1,76 @@
 package main
 
 import (
-	"bufio"
-	"encoding/csv"
+	"encoding/json"
 	"errors"
+	"io/ioutil"
 	"log"
 	"os"
+
+	hue "github.com/dillonhafer/go.hue"
 )
 
-type Config struct {
-	BridgeAddress string
-	Username      string
+type LightBulb struct {
+	Name string
 }
 
-func (c *Config) Write(fileName string) {
-	if fileName == "" {
-		fileName = "./config.csv"
-	}
-	file, err := os.Create(fileName)
+type Config struct {
+	file          string
+	BridgeAddress string
+	Username      string
+	LightBulbs    []LightBulb
+	Days          []Day
+}
+
+func (c *Config) write() {
+	file, err := os.Create(c.file)
 	if err != nil {
 		log.Fatal("Cannot create config file", err)
 	}
 	defer file.Close()
 
-	writer := csv.NewWriter(file)
-
-	data := [][]string{{"bridgeAddress", "username"}, {c.BridgeAddress, c.Username}}
-	for _, value := range data {
-		err := writer.Write(value)
-		if err != nil {
-			log.Fatal("Cannot write to config file", err)
-		}
+	configJson, _ := json.MarshalIndent(c, "", "  ")
+	err = ioutil.WriteFile(c.file, configJson, 0644)
+	if err != nil {
+		log.Fatal("Cannot write to config file", err)
 	}
-
-	defer writer.Flush()
 }
 
-func (c *Config) Fetch(fileName string) error {
-	if fileName == "" {
-		fileName = "./config.csv"
-	}
-	csvFile, err := os.Open(fileName)
+func (c *Config) Load() {
+	file, err := ioutil.ReadFile(c.file)
 	if err != nil {
-		return errors.New("Config file does not exist. Please run `sunlights setup`")
+		log.Fatal(errors.New("Config file does not exist. Please run `sunlights setup`"))
 	}
 
-	csvRows := csv.NewReader(bufio.NewReader(csvFile))
-	result, err := csvRows.ReadAll()
-
-	if err != nil {
-		return err
-	}
-
-	for i := range result {
-		row := result[i]
-		c.BridgeAddress = row[0]
-		c.Username = row[1]
+	if err := json.Unmarshal(file, c); err != nil {
+		log.Fatal(err)
 	}
 
 	if c.Username != "" && c.BridgeAddress != "" {
-		return nil
+		return
 	}
 
-	return errors.New("Config file is missing data. Please run `sunlights setup` again")
+	log.Fatal(errors.New("Config file is missing data. Please run `sunlights setup` again"))
+}
+
+func (c *Config) AddBulb(name string) {
+	c.LightBulbs = append(c.LightBulbs, LightBulb{Name: name})
+	c.write()
+}
+
+func (c *Config) RemoveBulb(name string) {
+	var keepBulbs []LightBulb
+	for _, bulb := range c.LightBulbs {
+		if bulb.Name != name {
+			keepBulbs = append(keepBulbs, bulb)
+		}
+	}
+	c.LightBulbs = keepBulbs
+	c.write()
+}
+
+func (c *Config) SaveSetup(b *hue.Bridge) {
+	c.Username = b.Username
+	c.BridgeAddress = b.IpAddr
+	c.write()
 }
