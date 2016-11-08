@@ -13,15 +13,15 @@ type Today struct {
 	sunset  string
 }
 
-func NewToday(currentTime time.Time, sunsetTable string) Today {
+func NewToday(currentTime time.Time, days []Day) Today {
 	date := FormatDate(currentTime)
 	time := FormatTime(currentTime)
-	day, err := findDay(sunsetTable, date)
+	day, err := findDay(days, date)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return Today{date: date, time: time, sunrise: day.sunrise, sunset: day.sunset}
+	return Today{date: date, time: time, sunrise: day.Sunrise, sunset: day.Sunset}
 }
 
 func FormatTime(t time.Time) string {

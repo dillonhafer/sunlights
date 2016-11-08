@@ -8,9 +8,9 @@
 			"Rev": "14946570ec7636cdf62123b57743aae859f117fd"
 		},
 		{
-			"ImportPath": "github.com/mattn/go-sqlite3",
-			"Comment": "v1.1.0-96-ge5a3c16",
-			"Rev": "e5a3c16c5c1d80b24f633e68aecd6b0702786d3d"
+			"ImportPath": "github.com/urfave/cli",
+			"Comment": "v1.18.0-69-g55f715e",
+			"Rev": "55f715e28c46073d0e217e2ce8eb46b0b45e3db6"
 		}
 	]
 }

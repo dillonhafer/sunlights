@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"testing"
 	"time"
 )
@@ -38,56 +37,6 @@ func TestFormatTime(t *testing.T) {
 		ct := FormatTime(timeTest.rawTime)
 		if ct != timeTest.formattedTime {
 			t.Fatalf("\033[31mExpected \033[m \033[33m%v\033[33m \033[31mbut was\033[m \033[33m%v\033[m", timeTest.formattedTime, ct)
-		}
-	}
-}
-
-func TestFindDayWorks(t *testing.T) {
-	expectedDay := Day{day: "Jan-01", sunrise: "7:15 a.m.", sunset: "4:29 p.m."}
-	testFile := "times.example.csv"
-
-	day, _ := findDay(testFile, "Jan-01")
-
-	if day != expectedDay {
-		t.Fatalf("Expected %v but was %v", expectedDay, day)
-	}
-}
-
-func TestFindDayCantFindFile(t *testing.T) {
-	_, err := findDay("nofilehere", "Jan-01")
-
-	if err == nil {
-		t.Error("Expected a missing file error")
-	}
-}
-
-func TestFindDayCantFindDay(t *testing.T) {
-	testFile := "times.example.csv"
-	_, err := findDay(testFile, "Aug-01")
-
-	if err.Error() != "Could not find entry for 'Aug-01' in csv" {
-		t.Error("Expected a can't find entry error")
-	}
-}
-
-func TestNewToday(t *testing.T) {
-	var datetests = []struct {
-		rawDate time.Time
-		date    string
-		time    string
-		sunrise string
-		sunset  string
-	}{
-		{time.Date(2016, 1, 1, 16, 29, 1, 1, time.UTC), "Jan-01", "4:29 p.m.", "7:15 a.m.", "4:29 p.m."},
-		{time.Date(2016, 1, 3, 3, 30, 1, 1, time.UTC), "Jan-03", "3:30 a.m.", "7:16 a.m.", "4:31 p.m."},
-		{time.Date(2016, 1, 5, 0, 0, 1, 1, time.UTC), "Jan-05", "12:00 a.m.", "7:16 a.m.", "4:33 p.m."},
-	}
-
-	for _, today := range datetests {
-		actual := NewToday(today.rawDate, "times.example.csv")
-		expected := Today{date: today.date, time: today.time, sunrise: today.sunrise, sunset: today.sunset}
-		if actual != expected {
-			t.Error(fmt.Sprintf("Expected %v but was %v", expected, actual))
 		}
 	}
 }
