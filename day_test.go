@@ -7,7 +7,7 @@ import (
 )
 
 func TestFindDayWorks(t *testing.T) {
-	expectedDay := Day{day: "Jan-01", sunrise: "7:15 a.m.", sunset: "4:29 p.m."}
+	expectedDay := Day{Date: "Jan-01", Sunrise: "7:15 a.m.", Sunset: "4:29 p.m."}
 	days := []Day{expectedDay}
 
 	day, _ := findDay(days, "Jan-01")
@@ -18,7 +18,7 @@ func TestFindDayWorks(t *testing.T) {
 }
 
 func TestFindDayCantFindDay(t *testing.T) {
-	expectedDay := Day{day: "Jan-01", sunrise: "7:15 a.m.", sunset: "4:29 p.m."}
+	expectedDay := Day{Date: "Jan-01", Sunrise: "7:15 a.m.", Sunset: "4:29 p.m."}
 	days := []Day{expectedDay}
 	_, err := findDay(days, "Aug-01")
 
@@ -29,9 +29,9 @@ func TestFindDayCantFindDay(t *testing.T) {
 
 func TestNewToday(t *testing.T) {
 	days := []Day{
-		Day{day: "Jan-01", sunrise: "7:15 a.m.", sunset: "4:29 p.m."},
-		Day{day: "Jan-03", sunrise: "7:16 a.m.", sunset: "4:31 p.m."},
-		Day{day: "Jan-05", sunrise: "7:16 a.m.", sunset: "4:33 p.m."},
+		Day{Date: "Jan-01", Sunrise: "7:15 a.m.", Sunset: "4:29 p.m."},
+		Day{Date: "Jan-03", Sunrise: "7:16 a.m.", Sunset: "4:31 p.m."},
+		Day{Date: "Jan-05", Sunrise: "7:16 a.m.", Sunset: "4:33 p.m."},
 	}
 
 	var datetests = []struct {

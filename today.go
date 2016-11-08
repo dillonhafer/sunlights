@@ -21,7 +21,7 @@ func NewToday(currentTime time.Time, days []Day) Today {
 		log.Fatal(err)
 	}
 
-	return Today{date: date, time: time, sunrise: day.sunrise, sunset: day.sunset}
+	return Today{date: date, time: time, sunrise: day.Sunrise, sunset: day.Sunset}
 }
 
 func FormatTime(t time.Time) string {

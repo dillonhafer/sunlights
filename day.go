@@ -6,14 +6,14 @@ import (
 )
 
 type Day struct {
-	day     string
-	sunrise string
-	sunset  string
+	Date    string
+	Sunrise string
+	Sunset  string
 }
 
 func findDay(days []Day, today string) (Day, error) {
 	for _, day := range days {
-		if today == day.day {
+		if today == day.Date {
 			return day, nil
 		}
 	}
