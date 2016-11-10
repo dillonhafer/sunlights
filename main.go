@@ -12,9 +12,9 @@ import (
 	"github.com/urfave/cli"
 )
 
-const Version = "3.0.0"
+const Version = "3.1.0"
 
-var config = Config{file: "./config.json"}
+var config = Config{}
 
 func puts(message string) {
 	l := log.New(os.Stdout, "[Sunlights] ", log.Ldate|log.Ltime)
@@ -51,11 +51,26 @@ func AllBulbs() []LightBulb {
 	return config.LightBulbs
 }
 
+func ActionWithConfig(f func(*cli.Context) error) func(*cli.Context) error {
+	return func(c *cli.Context) error {
+		config.Load()
+		return f(c)
+	}
+}
+
 func main() {
 	app := cli.NewApp()
 	app.Name = "sunlights"
 	app.Usage = "Contrl"
 	app.Version = Version
+	app.Flags = []cli.Flag{
+		cli.StringFlag{
+			Name:        "config,C",
+			Value:       ".sunlights.json",
+			Usage:       "Configuration file",
+			Destination: &config.file,
+		},
+	}
 	app.Commands = []cli.Command{
 		{
 			Name:  "setup",
@@ -69,77 +84,86 @@ func main() {
 			Name:    "list",
 			Aliases: []string{"ls"},
 			Usage:   "List all light bulbs.",
-			Action: func(c *cli.Context) error {
-				bulbs := AllBulbs()
-				println("\n", " Here are your light bulbs💡")
-				for i, bulb := range bulbs {
-					fmt.Println(fmt.Sprintf("    %d. %s", i+1, bulb.Name))
-				}
-				println()
-				os.Exit(0)
-				return nil
-			},
+			Action: ActionWithConfig(
+				func(c *cli.Context) error {
+					bulbs := AllBulbs()
+					println("\n", " Here are your light bulbs💡")
+					for i, bulb := range bulbs {
+						fmt.Println(fmt.Sprintf("    %d. %s", i+1, bulb.Name))
+					}
+					println()
+					os.Exit(0)
+					return nil
+				},
+			),
 		},
 		{
 			Name:    "add",
 			Aliases: []string{"a"},
 			Usage:   "add a light bulb to be controlled",
-			Action: func(c *cli.Context) error {
-				name := c.Args().First()
-				if name != "" {
-					config.AddBulb(name)
-					println(fmt.Sprintf("Added %s", name))
-					os.Exit(0)
-					return nil
-				} else {
-					return errors.New("You must provide a name for your new light bulb")
-				}
-			},
+			Action: ActionWithConfig(
+				func(c *cli.Context) error {
+					name := c.Args().First()
+					if name != "" {
+						config.AddBulb(name)
+						println(fmt.Sprintf("Added %s", name))
+						os.Exit(0)
+						return nil
+					} else {
+						return errors.New("You must provide a name for your new light bulb")
+					}
+				},
+			),
 		},
 		{
 			Name:    "remove",
 			Aliases: []string{"rm"},
 			Usage:   "remove control of a light bulb",
-			Action: func(c *cli.Context) error {
-				name := c.Args().First()
-				if name != "" {
-					config.RemoveBulb(name)
-					os.Exit(0)
-					return nil
-				} else {
-					return errors.New("You must provide a name for the light bulb you want to remove.")
-				}
-			},
+			Action: ActionWithConfig(
+				func(c *cli.Context) error {
+					name := c.Args().First()
+					if name != "" {
+						config.RemoveBulb(name)
+						os.Exit(0)
+						return nil
+					} else {
+						return errors.New("You must provide a name for the light bulb you want to remove.")
+					}
+				},
+			),
 		},
 		{
 			Name:    "show",
 			Aliases: []string{"s"},
 			Usage:   "show all lightbulbs connected to bridge",
-			Action: func(c *cli.Context) error {
-				bridge := Bridge{Hue: hue.NewBridge(config.BridgeAddress, config.Username)}
-				lights, _ := bridge.Hue.GetAllLights()
+			Action: ActionWithConfig(
+				func(c *cli.Context) error {
+					bridge := Bridge{Hue: hue.NewBridge(config.BridgeAddress, config.Username)}
+					lights, _ := bridge.Hue.GetAllLights()
 
-				for _, light := range lights {
-					println(light.Name)
-				}
-				return nil
-			},
+					for _, light := range lights {
+						println(light.Name)
+					}
+					return nil
+				},
+			),
 		},
 	}
 
-	app.Action = func(c *cli.Context) error {
-		bridge := Bridge{Hue: hue.NewBridge(config.BridgeAddress, config.Username)}
-		today := NewToday(time.Now(), config.Days)
+	app.Action = ActionWithConfig(
+		func(c *cli.Context) error {
+			bridge := Bridge{Hue: hue.NewBridge(config.BridgeAddress, config.Username)}
+			today := NewToday(time.Now(), config.Days)
 
-		switch today.time {
-		case today.sunrise:
-			bridge.TurnLightsOff()
-		case today.sunset:
-			bridge.TurnLightsOn()
-		}
-		return nil
-	}
+			switch today.time {
+			case today.sunrise:
+				bridge.TurnLightsOff()
+			case today.sunset:
+				bridge.TurnLightsOn()
+			}
+			return nil
+		},
+	)
 
-	config.Load()
 	app.Run(os.Args)
 }
