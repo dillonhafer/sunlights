@@ -61,7 +61,7 @@ func ActionWithConfig(f func(*cli.Context) error) func(*cli.Context) error {
 func main() {
 	app := cli.NewApp()
 	app.Name = "sunlights"
-	app.Usage = "Contrl"
+	app.Usage = "Control lights based on sunrise/sunset"
 	app.Version = Version
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
@@ -100,7 +100,7 @@ func main() {
 		{
 			Name:    "add",
 			Aliases: []string{"a"},
-			Usage:   "add a light bulb to be controlled",
+			Usage:   "Add a light bulb to be controlled",
 			Action: ActionWithConfig(
 				func(c *cli.Context) error {
 					name := c.Args().First()
@@ -118,7 +118,7 @@ func main() {
 		{
 			Name:    "remove",
 			Aliases: []string{"rm"},
-			Usage:   "remove control of a light bulb",
+			Usage:   "Remove control of a light bulb",
 			Action: ActionWithConfig(
 				func(c *cli.Context) error {
 					name := c.Args().First()
@@ -135,7 +135,7 @@ func main() {
 		{
 			Name:    "show",
 			Aliases: []string{"s"},
-			Usage:   "show all lightbulbs connected to bridge",
+			Usage:   "Show all lightbulbs connected to bridge",
 			Action: ActionWithConfig(
 				func(c *cli.Context) error {
 					bridge := Bridge{Hue: hue.NewBridge(config.BridgeAddress, config.Username)}
